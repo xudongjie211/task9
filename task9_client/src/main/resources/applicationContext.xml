@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+
+ ">
+
+
+     
+     	<!-- 开启注释 -->
+	<context:annotation-config />  
+	<import resource="aliyun.xml"/>
+	<!-- 扫描所在包的@service等注释 -->
+	<context:component-scan base-package="com.jnshu" />
+
+	<bean id="studentRMIClientOne" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceInterface" value="com.jnshu.service.StudentInterface"/>
+		<property name="serviceUrl" value="rmi://127.0.0.1:8084/studentService"/>
+		<!--<property name="lookupStubOnStartup" value="false"/>-->
+		<property name="refreshStubOnConnectFailure" value="true"/>
+	</bean>
+	<bean id="courseRMIClientOne" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceInterface" value="com.jnshu.service.CourseInterface"/>
+		<property name="serviceUrl" value="rmi://127.0.0.1:8084/courseService"/>
+		<!--<property name="lookupStubOnStartup" value="false"/>-->
+		<property name="refreshStubOnConnectFailure" value="true"/>
+	</bean>
+	<bean id="userRMIClientOne" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceInterface" value="com.jnshu.service.UserInterface"/>
+		<property name="serviceUrl" value="rmi://127.0.0.1:8084/userService"/>
+		<!--<property name="lookupStubOnStartup" value="false"/>-->
+		<property name="refreshStubOnConnectFailure" value="true"/>
+	</bean>
+
+
+
+
+	<bean id="studentRMIClientTwo" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceInterface" value="com.jnshu.service.StudentInterface"/>
+		<property name="serviceUrl" value="rmi://127.0.0.1:8085/studentService"/>
+		<property name="lookupStubOnStartup" value="false"/>
+		<!--<property name="refreshStubOnConnectFailure" value="true"/>-->
+	</bean>
+	<bean id="courseRMIClientTwo" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceInterface" value="com.jnshu.service.CourseInterface"/>
+		<property name="serviceUrl" value="rmi://127.0.0.1:8085/courseService"/>
+		<property name="lookupStubOnStartup" value="false"/>
+		<!--<property name="refreshStubOnConnectFailure" value="true"/>-->
+	</bean>
+	<bean id="userRMIClientTwo" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceInterface" value="com.jnshu.service.UserInterface"/>
+		<property name="serviceUrl" value="rmi://127.0.0.1:8085/userService"/>
+		<property name="lookupStubOnStartup" value="false"/>
+		<!--<property name="refreshStubOnConnectFailure" value="true"/>-->
+	</bean>
+
+
+
+
+
+
+</beans>
