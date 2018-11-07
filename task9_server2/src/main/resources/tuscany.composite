@@ -1,0 +1,40 @@
+<composite xmlns="http://docs.oasis-open.org/ns/opencsa/sca/200912"
+           xmlns:tuscany="http://tuscany.apache.org/xmlns/sca/1.1"
+           targetNamespace="http://com.jnshu"
+           name="StudentImpl" >
+
+
+   <component name="studnetService">
+        <implementation.spring location="applicationContext.xml"/>
+        <service name="studentService">
+            <interface.java interface="com.jnshu.service.StudentInterface"/>
+            <tuscany:binding.rmi uri="rmi://localhost:8085/studentService"/>
+        </service>
+    </component>
+
+    <component name="courseService">
+        <implementation.spring location="applicationContext.xml"/>
+
+        <service name="courseService">
+            <interface.java interface="com.jnshu.service.CourseInterface"/>
+
+            <tuscany:binding.rmi uri="rmi://localhost:8085/courseService"/>
+        </service>
+    </component>
+
+    <component name="userService">
+        <implementation.spring location="applicationContext.xml"/>
+        <service name="userService">
+            <interface.java interface="com.jnshu.service.UserInterface"/>
+
+            <tuscany:binding.rmi uri="rmi://localhost:8085/userService"/>
+        </service>
+
+    </component>
+
+
+
+
+
+
+</composite>

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:sca="http://www.springframework.org/schema/sca"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/sca http://www.osoa.org/xmlns/sca/1.0/spring-sca.xsd">
+
+     <bean id="aspectj" class="com.jnshu.aop.Myaspectj"/>
+     <aop:config>
+     	<aop:pointcut expression="execution(* com.jnshu.service.StudentImpl.count(..))" id="pointcut1"/>
+   	<aop:aspect ref="aspectj">
+     		<aop:before method="before" pointcut-ref="pointcut1"/>
+     	  	<aop:around method="timearound" pointcut-ref="pointcut1"/>
+     	</aop:aspect>   	
+     </aop:config>
+     
+     	<!-- 开启注释 -->
+	<context:annotation-config />  
+	<!-- <import resource="aliyun.xml"/> -->
+	<!-- 扫描所在包的@service等注释 -->
+	<context:component-scan base-package="com.jnshu" />
+	<!-- 传递连接池的信息 -->
+	<!-- <context:property-placeholder location="classpath:/jdbc.propreties" /> -->
+	<context:property-placeholder location="classpath:jdbc.properties" ignore-unresolvable="true"/>
+	 <context:property-placeholder location="classpath*:redis.properties" ignore-unresolvable="true"/>
+	
+
+	<!-- <bean id="datasource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean> -->
+	
+	
+<bean id="datasource"
+          class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <!-- 配置监控统计拦截的filters -->
+        <property name="filters" value="stat" />
+
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="maxActive" value="20" />
+        <property name="initialSize" value="1" />
+        <property name="minIdle" value="1" />
+
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+        <property name="poolPreparedStatements" value="true" />
+        <property name="maxOpenPreparedStatements" value="20" />
+
+    </bean>
+
+
+	<!-- 配置sqlswssion工厂，链接数据源和mapper配置信息 -->
+	<bean id="sqlsession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="datasource"></property>
+		<property name="mapperLocations" value="classpath:/mapper/*.xml" ></property>
+
+	</bean>
+	
+<!-- 用mapper工厂，适合一个mapper接口 
+	<bean id="studentMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.jnshu.dao.mapper.JdbcInterface" />
+		<property name="sqlSessionFactory" ref="sqlsession" />
+	</bean>
+ -->
+
+	<!-- 通过扫描mapper接口所在包，适合多个接口类 -->
+		<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
+		<property name="sqlSessionFactoryBeanName" value="sqlsession"/>
+		 <property name="basePackage" value="com.jnshu.dao"/> 
+		 </bean> 
+
+
+
+<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="${redis.maxTotal}"/>
+        <property name="maxIdle" value="${redis.maxIdle}"/>
+        <property name="maxWaitMillis" value="${redis.maxWaitMillis}"/>
+        <property name="testOnBorrow" value="${redis.testOnBorrow}"/>
+    </bean>
+    <!--配置连接池工厂-->
+    <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <property name="hostName" value="${redis.host}"/>
+        <property name="port" value="${redis.port}"/>
+        <!--<property name="password" value="${redis.password}"/>-->
+        <property name="poolConfig" ref="jedisPoolConfig"/>
+    </bean>
+    <!--配置Spring Redis Template-->
+    <bean id="jdkSerializationRedisSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+    <bean id="stringRedisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>
+        <property name="keySerializer" ref="stringRedisSerializer"/>
+        <property name="valueSerializer" ref="jdkSerializationRedisSerializer"/>
+    </bean>
+
+
+    <!--<bean id="studentImplRMI" class="com.jnshu.service.StudentImpl"> </bean>-->
+    <!--&lt;!&ndash; 将一个类发布为一个RMI服务 &ndash;&gt;-->
+    <!--<bean id="studentRMIServer"  class="org.springframework.remoting.rmi.RmiServiceExporter" >-->
+        <!--<property name="serviceName" value="studentRMI"/>-->
+        <!--<property name="service" ref="studentImplRMI"/>-->
+        <!--<property name="serviceInterface" value="com.jnshu.service.StudentInterface"/>-->
+        <!--<property name="registryPort" value="8084"/>-->
+        <!--<property name="servicePort" value="8084"/>-->
+    <!--</bean>-->
+    <!--<bean id="courseImplRMI" class="com.jnshu.service.CourseImpl"> </bean>-->
+    <!--&lt;!&ndash; 将一个类发布为一个RMI服务 &ndash;&gt;-->
+    <!--<bean id="courseRMIServer"  class="org.springframework.remoting.rmi.RmiServiceExporter" >-->
+        <!--<property name="serviceName" value="courseRMI"/>-->
+        <!--<property name="service" ref="courseImplRMI"/>-->
+        <!--<property name="serviceInterface" value="com.jnshu.service.CourseInterface"/>-->
+        <!--<property name="registryPort" value="8084"/>-->
+        <!--<property name="servicePort" value="8084"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="userImplRMI" class="com.jnshu.service.UserImpl"> </bean>-->
+    <!--&lt;!&ndash; 将一个类发布为一个RMI服务 &ndash;&gt;-->
+    <!--<bean id="userRMIServer"  class="org.springframework.remoting.rmi.RmiServiceExporter" >-->
+        <!--<property name="serviceName" value="userRMI"/>-->
+        <!--<property name="service" ref="userImplRMI"/>-->
+        <!--<property name="serviceInterface" value="com.jnshu.service.UserInterface"/>-->
+        <!--<property name="registryPort" value="8084"/>-->
+        <!--<property name="servicePort" value="8084"/>-->
+    <!--</bean>-->
+
+
+    <!--type：接口、target：实现类（一定要与bean的id相同）-->
+    <!--====================studentService====================-->
+    <sca:service name="studentService" type="com.jnshu.service.StudentInterface" target="studentImpl"/>
+    <!--bean生命是sca的service-->
+    <bean id="studentImpl" class="com.jnshu.service.StudentImpl"/>
+
+    <!--====================profession====================-->
+    <sca:service name="courseService" type="com.jnshu.service.CourseInterface" target="courseImpl"/>
+    <!--bean生命是sca的service-->
+    <bean id="courseImpl" class="com.jnshu.service.CourseImpl"/>
+
+    <!--====================userService====================-->
+    <sca:service name="userService" type="com.jnshu.service.UserInterface" target="userImpl"/>
+    <!--bean生命是sca的service-->
+    <bean id="userImpl" class="com.jnshu.service.UserImpl"/>
+
+
+
+
+
+
+
+
+</beans>
